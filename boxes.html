@@ -14,7 +14,10 @@
             background-color: aqua;
             font-size: xx-large;
             border: 3px solid;
-            padding: 30px;
+            padding: 10px;
+            width: 100px;
+            height: 200px;
+            text-align: center;
         }
 
         big-box {
@@ -27,40 +30,94 @@
         }
     </style>
     <big-box>
-        <mid-box>
-            1
+        <mid-box fid="1">
+            qwe
         </mid-box>
-        <mid-box>
-            2
+        <mid-box fid="2">
+            asd
         </mid-box>
-        <mid-box>
-            3
+        <mid-box fid="3">
+            zxc
         </mid-box>
-        <mid-box>
-            5
+        <mid-box fid="4">
+            123
         </mid-box>
     </big-box>
 
     <script type="module">
-        import { LitElement, html, css } from 'https://cdn.jsdelivr.net/gh/lit/dist@2/core/lit-core.min.js';
+        import { LitElement, html, css } from 'https://cdn.jsdelivr.net/npm/lit@3.1.0/+esm';
+        import { createContext, ContextProvider, ContextConsumer } from 'https://cdn.jsdelivr.net/npm/@lit/context@1.1.0/+esm';
 
-        class MidBox extends LitElement {
-            static get styles() {
-                return css`
-                    :host {
-                        background-color: red;
-                    }
-                `  
-             }
+        const fidContext = createContext('fid');
 
+        class BigBox extends LitElement {
+            
             render() {
                 return html`
-                    <slot></slot>
+                <slot></slot>
                 `;
+            }
+            
+            constructor() {
+                super()
+                this.selected_fid = new ContextProvider(this, {context: fidContext});
+                this.addEventListener('mid-box-clicked', (ev) => {
+                    console.log(`caught event for box ${ev.detail}`);
+                    this.selected_fid.setValue(ev.detail)
+                })
             }
         }
 
-        customElements.define('mid-box', MidBox);
+        class MidBox extends LitElement {
+            static get properties() {
+                return {
+                    fid: {type: String}
+                }
+            }
+            
+            static get styles() {
+                return css`
+                .selected {
+                    background-color: green;
+                    border: 3px solid;
+                }
+                `  
+            }
+            
+            render() {
+                return html`
+                <div class="${this.selected()}">
+                    <slot></slot>
+                </div>
+                `;
+            }
+            
+            is_selected() {
+                console.log(`the selected fid value is: ${this.selected_fid.value}`);
+                return this.fid === this.selected_fid.value
+            }
+            
+            selected() {
+                return this.is_selected() ? "selected" : ""
+            }
+            
+            constructor(){
+                super()
+                this.selected_fid = new ContextConsumer(this, {context: fidContext, subscribe: true})
+                this.addEventListener("click", (ev) => {
+                    console.log(`clicked on box ${this.innerText}`);
+                    this.dispatchEvent(new CustomEvent('mid-box-clicked', {
+                        bubbles: true,
+                        composed: true,
+                        detail: this.fid
+                    }))
+                    ev.stopPropagation()
+                })
+            }
+        }
+
+         customElements.define('big-box', BigBox);
+         customElements.define('mid-box', MidBox);
     </script>
 </body>
 </html>
