@@ -69,20 +69,16 @@
         }
 
         class MidBox extends LitElement {
-            static get properties() {
-                return {
-                    fid: {type: String}
-                }
+            static properties = {
+                fid: {type: String}
             }
-            
-            static get styles() {
-                return css`
+        
+            static styles = css`
                 .selected {
                     background-color: green;
                     border: 3px solid;
                 }
                 `  
-            }
             
             render() {
                 return html`
@@ -116,8 +112,8 @@
             }
         }
 
-         customElements.define('big-box', BigBox);
-         customElements.define('mid-box', MidBox);
+        customElements.define('big-box', BigBox);
+        customElements.define('mid-box', MidBox);
     </script>
 </body>
 </html>
