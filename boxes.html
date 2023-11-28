@@ -1,0 +1,66 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boxes For Dense Layers</title>
+</head>
+<body>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        mid-box {
+            background-color: aqua;
+            font-size: xx-large;
+            border: 3px solid;
+            padding: 30px;
+        }
+
+        big-box {
+            background-color: red;
+            border: 6px solid;
+            display: flex;
+            flex-direction: row;
+            padding: 20px;
+            gap: 10px;
+        }
+    </style>
+    <big-box>
+        <mid-box>
+            1
+        </mid-box>
+        <mid-box>
+            2
+        </mid-box>
+        <mid-box>
+            3
+        </mid-box>
+        <mid-box>
+            5
+        </mid-box>
+    </big-box>
+
+    <script type="module">
+        import { LitElement, html, css } from 'https://cdn.jsdelivr.net/gh/lit/dist@2/core/lit-core.min.js';
+
+        class MidBox extends LitElement {
+            static get styles() {
+                return css`
+                    :host {
+                        background-color: red;
+                    }
+                `  
+             }
+
+            render() {
+                return html`
+                    <slot></slot>
+                `;
+            }
+        }
+
+        customElements.define('mid-box', MidBox);
+    </script>
+</body>
+</html>
