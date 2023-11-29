@@ -1,0 +1,255 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boxes For Dense Layers</title>
+</head>
+<body>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        /* filter-box {
+            background-color: azure;
+            border: 2px solid;
+        } */
+
+        posts-box {
+            background-color: blueviolet;
+            border: 2px solid;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 5px;
+        }
+
+        post-box {
+            background-color: saddlebrown;
+            border: 1px solid;
+            padding: 5px;
+        }
+
+        mid-box {
+            background-color: aqua;
+            font-size: xx-large;
+            border: 3px solid;
+            padding: 10px;
+            text-align: center;
+        }
+
+        big-box {
+            background-color: red;
+            border: 6px solid;
+            display: flex;
+            flex-direction: row;
+            padding: 20px;
+            gap: 10px;
+        }
+    </style>
+    <big-box>
+        <mid-box fid="1">
+            <posts-box>
+                <post-box posttag="summary">
+                    qweasdddasd
+                </post-box>
+                <post-box posttag="explanation">
+                    123123
+                </post-box>
+                <post-box posttag="question">
+                    qwexzxzcxzc
+                </post-box>
+            </posts-box>
+        </mid-box>
+        <mid-box fid="2">
+            <posts-box>
+                <post-box posttag="summary">
+                    qweasdddasd
+                </post-box>
+                <post-box posttag="explanation">
+                    123123
+                </post-box>
+                <post-box posttag="question">
+                    qwexzxzcxzc
+                </post-box>
+            </posts-box>
+        </mid-box>
+        <mid-box fid="3">
+            <posts-box>
+                <post-box posttag="summary">
+                    qweasdddasd
+                </post-box>
+                <post-box posttag="explanation">
+                    123123
+                </post-box>
+                <post-box posttag="question">
+                    qwexzxzcxzc
+                </post-box>
+            </posts-box>
+        </mid-box>
+        <mid-box fid="4">
+            <posts-box>
+                <post-box posttag="summary">
+                    qweasdddasd
+                </post-box>
+                <post-box posttag="explanation">
+                    123123
+                </post-box>
+                <post-box posttag="question">
+                    qwexzxzcxzc
+                </post-box>
+            </posts-box>
+        </mid-box>
+    </big-box>
+
+    <script type="module">
+        // Uses the full Lit package
+        // Demonstrates post filtering.
+        import { LitElement, html, css, classMap } from 'https://cdn.jsdelivr.net/gh/lit/dist@3/all/lit-all.min.js';
+        import { createContext, ContextProvider, ContextConsumer } from 'https://cdn.jsdelivr.net/npm/@lit/context@1.1.0/+esm';
+
+        const fidContext = createContext('fid');
+        const postContext = createContext('post');
+
+        class Posts extends LitElement {
+            static styles = css`
+                filter-box {
+                    background-color: azure;
+                    border: 2px solid;
+                }
+            `
+
+            render() {
+                return html`
+                ${this.postFilterProvider.o ? html`<filter-box @click=${this.onClick}>${this.postFilterProvider.o}</filter-box>` : html``}
+                <slot></slot>
+                `;
+            }
+            
+            constructor() {
+                super()
+                this.postFilterProvider = new ContextProvider(this, {
+                    context: postContext, 
+                });
+                this.addEventListener('post-clicked', (ev) => {
+                    this.filterUpdate(ev.detail !== this.postFilterProvider.o ? ev.detail : null)
+                })
+            }
+            onClick(ev) {
+                this.filterUpdate(null)
+            }
+            filterUpdate(x) {
+                this.postFilterProvider.setValue(x)
+                this.requestUpdate()
+            }
+        }
+        class BigBox extends LitElement {
+            render() {
+                return html`
+                <slot></slot>
+                `;
+            }
+            
+            constructor() {
+                super()
+                this.selectedFid = new ContextProvider(this, {
+                    context: fidContext, 
+                    initialValue: new URLSearchParams(window.location.search).get("fid")
+                });
+                this.addEventListener('mid-box-clicked', (ev) => {
+                    this.selectedFid.setValue(ev.detail)
+                })
+            }
+        }
+
+        class Post extends LitElement {
+            static styles = css`
+                div {
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                filter-box {
+                    background-color: azure;
+                    border: 2px solid;
+                }
+            `
+
+            static properties = {
+                posttag: {type: String}
+            }
+
+            render() {
+                const visible = !this.postFilter.value || this.posttag == this.postFilter.value
+                // doesn't work if the :host css variable is set
+                // that's why I'm using the div container
+                this.hidden = !visible
+                if (visible) {
+                    return html`
+                        <div>
+                            <filter-box @click=${this.onClick}>${this.posttag}</filter-box>
+                            <slot></slot>
+                        </div>
+                        `
+                }
+            }
+            
+            constructor(){
+                super()
+                this.postFilter = new ContextConsumer(this, {context: postContext, subscribe: true})
+            }
+            
+            onClick(ev){
+                this.dispatchEvent(new CustomEvent('post-clicked', {
+                    bubbles: true,
+                    composed: true,
+                    detail: this.posttag
+                }))
+                // ev.stopPropagation()
+            }
+        }
+        class MidBox extends LitElement {
+            static properties = {
+                fid: {type: String}
+            }
+        
+            static styles = css`
+                .selected {
+                    background-color: green;
+                    border: 3px solid;
+                    padding: 20px;
+                }
+                `  
+            
+            render() {
+                const classes = classMap({
+                    selected: this.fid === this.selectedFid.value
+                })
+                return html`
+                <div class=${classes}>
+                    <slot></slot>
+                </div>
+                `;
+            }
+            
+            constructor(){
+                super()
+                this.selectedFid = new ContextConsumer(this, {context: fidContext, subscribe: true})
+                this.addEventListener("click", (ev) => {
+                    this.dispatchEvent(new CustomEvent('mid-box-clicked', {
+                        bubbles: true,
+                        composed: true,
+                        detail: this.fid
+                    }))
+                    ev.stopPropagation()
+                })
+            }
+        }
+
+        customElements.define('posts-box', Posts);
+        customElements.define('big-box', BigBox);
+        customElements.define('post-box', Post);
+        customElements.define('mid-box', MidBox);
+    </script>
+</body>
+</html>
