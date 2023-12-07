@@ -10,12 +10,7 @@
             box-sizing: border-box;
         }
 
-        /* filter-box {
-            background-color: azure;
-            border: 2px solid;
-        } */
-
-        posts-box {
+        posts-array {
             background-color: blueviolet;
             border: 2px solid;
             display: flex;
@@ -24,7 +19,7 @@
             padding: 5px;
         }
 
-        post-box {
+        post-array {
             background-color: saddlebrown;
             border: 1px solid;
             padding: 5px;
@@ -50,75 +45,36 @@
     </style>
     <big-box>
         <mid-box fid="1">
-            <posts-box>
-                <post-box posttag="summary">
+            <posts-array>
+                <post-array posttag='["summary sdfwer"]'>
                     qweasdddasd
-                </post-box>
-                <post-box posttag="explanation">
+                </post-array>
+                <post-array posttag='["explanation"]'>
                     123123
-                </post-box>
-                <post-box posttag="question">
+                </post-array>
+                <post-array posttag='["question", "explanation"]'>
                     qwexzxzcxzc
-                </post-box>
-                <post-box posttag="question">
+                </post-array>
+                <post-array posttag='["question", "summary"]'>
                     qwexzxzcxzc
-                </post-box>
-                <post-box posttag="question">
+                </post-array>
+                <post-array posttag='["question"]'>
                     qwexzxzcxzc
-                </post-box>
-            </posts-box>
-        </mid-box>
-        <mid-box fid="2">
-            <posts-box>
-                <post-box posttag="summary">
-                    qweasdddasd
-                </post-box>
-                <post-box posttag="explanation">
-                    123123
-                </post-box>
-                <post-box posttag="question">
-                    qwexzxzcxzc
-                </post-box>
-            </posts-box>
-        </mid-box>
-        <mid-box fid="3">
-            <posts-box>
-                <post-box posttag="summary">
-                    qweasdddasd
-                </post-box>
-                <post-box posttag="explanation">
-                    123123
-                </post-box>
-                <post-box posttag="question">
-                    qwexzxzcxzc
-                </post-box>
-            </posts-box>
-        </mid-box>
-        <mid-box fid="4">
-            <posts-box>
-                <post-box posttag="summary">
-                    qweasdddasd
-                </post-box>
-                <post-box posttag="explanation">
-                    123123
-                </post-box>
-                <post-box posttag="question">
-                    qwexzxzcxzc
-                </post-box>
-            </posts-box>
+                </post-array>
+            </posts-array>
         </mid-box>
     </big-box>
 
     <script type="module">
         // Uses the full Lit package
         // Demonstrates post filtering.
-        import { LitElement, html, css, classMap } from 'https://cdn.jsdelivr.net/gh/lit/dist@3/all/lit-all.min.js';
+        import { LitElement, html, css, classMap, map } from 'https://cdn.jsdelivr.net/gh/lit/dist@3/all/lit-all.min.js';
         import { createContext, ContextProvider, ContextConsumer } from 'https://cdn.jsdelivr.net/npm/@lit/context@1.1.0/+esm';
 
         const fidContext = createContext('fid');
         const postContext = createContext('post');
 
-        class Posts extends LitElement {
+        class PostsArray extends LitElement {
             static styles = css`
                 filter-box {
                     background-color: azure;
@@ -128,28 +84,82 @@
 
             render() {
                 return html`
-                ${this.postFilterProvider.o ? html`<filter-box @click=${this.onClick}>${this.postFilterProvider.o}</filter-box>` : html``}
-                <slot></slot>
+                    ${map(this.h, x => html`<filter-box @click=${this.onClick(x)}>${x}</filter-box>`)}
+                    <slot></slot>
                 `;
             }
             
             constructor() {
                 super()
+                this.h = new Set()
                 this.postFilterProvider = new ContextProvider(this, {
                     context: postContext, 
+                    initialValue: [...this.h.values()]
                 });
                 this.addEventListener('post-clicked', (ev) => {
-                    this.filterUpdate(ev.detail !== this.postFilterProvider.o ? ev.detail : null)
+                    this.filterUpdate(ev.detail)
                 })
             }
-            onClick(ev) {
-                this.filterUpdate(null)
+            onClick = tag => ev => {
+                this.filterUpdate(tag)
             }
             filterUpdate(x) {
-                this.postFilterProvider.setValue(x)
+                !this.h.delete(x) && this.h.add(x) // toggles the tag
+                this.postFilterProvider.setValue([...this.h.values()])
                 this.requestUpdate()
             }
         }
+
+        class PostArray extends LitElement {
+            static styles = css`
+                div {
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                filter-box {
+                    background-color: azure;
+                    border: 2px solid;
+                }
+            `
+
+            static properties = {
+                posttag: {type: Array}
+            }
+
+            render() {
+                let visible = true;
+                for (const x of this.postFilter.value.values()) {
+                    visible = visible && this.posttag.includes(x)
+                }
+                // console.log(visible);
+                // doesn't work if the :host css variable is set
+                // that's why I'm using the div container
+                this.hidden = !visible
+                if (visible) {
+                    return html`
+                        <div>
+                            ${map(this.posttag, tag => html`<filter-back @click=${this.onClick(tag)}>${tag}</filter-box>`)}
+                            <slot></slot>
+                        </div>
+                        `
+                }
+            }
+            
+            constructor(){
+                super()
+                this.postFilter = new ContextConsumer(this, {context: postContext, subscribe: true})
+            }
+            
+            onClick = tag => ev => {
+                this.dispatchEvent(new CustomEvent('post-clicked', {
+                    bubbles: true,
+                    composed: true,
+                    detail: tag
+                }))
+            }
+        }
+
         class BigBox extends LitElement {
             render() {
                 return html`
@@ -169,52 +179,6 @@
             }
         }
 
-        class Post extends LitElement {
-            static styles = css`
-                div {
-                    display: flex;
-                    flex-direction: column;
-                }
-
-                filter-box {
-                    background-color: azure;
-                    border: 2px solid;
-                }
-            `
-
-            static properties = {
-                posttag: {type: String}
-            }
-
-            render() {
-                const visible = !this.postFilter.value || this.posttag == this.postFilter.value
-                // doesn't work if the :host css variable is set
-                // that's why I'm using the div container
-                this.hidden = !visible
-                if (visible) {
-                    return html`
-                        <div>
-                            <filter-box @click=${this.onClick}>${this.posttag}</filter-box>
-                            <slot></slot>
-                        </div>
-                        `
-                }
-            }
-            
-            constructor(){
-                super()
-                this.postFilter = new ContextConsumer(this, {context: postContext, subscribe: true})
-            }
-            
-            onClick(ev){
-                this.dispatchEvent(new CustomEvent('post-clicked', {
-                    bubbles: true,
-                    composed: true,
-                    detail: this.posttag
-                }))
-                // ev.stopPropagation()
-            }
-        }
         class MidBox extends LitElement {
             static properties = {
                 fid: {type: String}
@@ -253,9 +217,9 @@
             }
         }
 
-        customElements.define('posts-box', Posts);
+        customElements.define('posts-array', PostsArray);
+        customElements.define('post-array', PostArray);
         customElements.define('big-box', BigBox);
-        customElements.define('post-box', Post);
         customElements.define('mid-box', MidBox);
     </script>
 </body>

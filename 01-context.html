@@ -104,8 +104,8 @@
                 this.addEventListener("click", (ev) => {
                     console.log(`clicked on box ${this.innerText}`);
                     this.dispatchEvent(new CustomEvent('mid-box-clicked', {
-                        bubbles: true,
-                        composed: true,
+                        bubbles: true, // Floats up to the parent.
+                        composed: true, // Goes past the shadowdam
                         detail: this.fid
                     }))
                     ev.stopPropagation()
