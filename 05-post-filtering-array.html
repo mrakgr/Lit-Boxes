@@ -104,7 +104,7 @@
                 this.filterUpdate(tag)
             }
             filterUpdate(x) {
-                !this.h.delete(x) && this.h.add(x) // toggles the tag
+                this.h.delete(x) || this.h.add(x) // toggles the tag
                 this.postFilterProvider.setValue([...this.h.values()])
                 this.requestUpdate()
             }
