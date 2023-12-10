@@ -191,14 +191,12 @@
                 // doesn't work if the :host css variable is set
                 // that's why I'm using the div container
                 this.hidden = !visible
-                if (visible) {
-                    return html`
-                        <div>
-                            <filter-box @click=${this.onClick}>${this.posttag}</filter-box>
-                            <slot></slot>
-                        </div>
-                        `
-                }
+                return html`
+                    <div>
+                        <filter-box @click=${this.onClick}>${this.posttag}</filter-box>
+                        <slot></slot>
+                    </div>
+                    `
             }
             
             constructor(){
