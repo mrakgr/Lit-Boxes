@@ -25,7 +25,6 @@
         }
 
         post-box {
-            background-color: saddlebrown;
             border: 1px solid;
             padding: 5px;
         }
@@ -51,7 +50,7 @@
     <big-box>
         <mid-box fid="1">
             <posts-box>
-                <post-box posttag="summary">
+                <post-box class="top" posttag="summary">
                     qweasdddasd
                 </post-box>
                 <post-box posttag="explanation">
@@ -180,6 +179,14 @@
                     background-color: azure;
                     border: 2px solid;
                 }
+
+                :host {
+                    background-color: saddlebrown;
+                }
+
+                :host(.top) {
+                    background-color: orange;
+                }
             `
 
             static properties = {
@@ -188,14 +195,10 @@
 
             render() {
                 const visible = !this.postFilter.value || this.posttag == this.postFilter.value
-                // doesn't work if the :host css variable is set
-                // that's why I'm using the div container
                 this.hidden = !visible
                 return html`
-                    <div>
-                        <filter-box @click=${this.onClick}>${this.posttag}</filter-box>
-                        <slot></slot>
-                    </div>
+                    <filter-box @click=${this.onClick}>${this.posttag}</filter-box>
+                    <slot></slot>
                     `
             }
             
